@@ -40,6 +40,16 @@ router.get("/search", async (req: Request, res: Response) => {
       skip,
     });
 
+    // Check MongoDB connection status
+    const dbState = require("mongoose").connection.readyState;
+    if (dbState !== 1) {
+      console.warn("⚠️  MongoDB not connected. State:", dbState);
+      return res.status(503).json({ 
+        message: "Database connection error",
+        details: `MongoDB state: ${dbState} (1=connected)`
+      });
+    }
+
     const hotels = await Hotel.find(query)
       .sort(sortOptions)
       .skip(skip)
@@ -59,27 +69,68 @@ router.get("/search", async (req: Request, res: Response) => {
     console.log(`✅ Hotel Search found ${hotels.length} hotels`);
     res.json(response);
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     console.error("❌ Hotel Search Error:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      message: errorMessage,
+      stack: errorStack,
+      type: error?.constructor?.name,
       query: req.query,
     });
-    res.status(500).json({ message: "Something went wrong" });
+    
+    // Send detailed error in development, generic in production
+    const details = process.env.NODE_ENV === "development" ? {
+      message: errorMessage,
+      type: error?.constructor?.name,
+      mongooseError: (error as any)?.$where || (error as any)?.schemaPath,
+    } : undefined;
+    
+    res.status(500).json({ 
+      message: "Something went wrong",
+      details: details
+    });
   }
 });
 
 router.get("/", async (req: Request, res: Response) => {
   try {
     console.log("📋 Fetching all hotels...");
+    
+    // Check MongoDB connection status
+    const dbState = require("mongoose").connection.readyState;
+    if (dbState !== 1) {
+      console.warn("⚠️  MongoDB not connected. State:", dbState);
+      return res.status(503).json({ 
+        message: "Database connection error",
+        details: `MongoDB state: ${dbState} (1=connected)`
+      });
+    }
+    
     const hotels = await Hotel.find().sort("-lastUpdated");
     console.log(`✅ Retrieved ${hotels.length} hotels`);
     res.json(hotels);
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     console.error("❌ Error fetching hotels:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      message: errorMessage,
+      stack: errorStack,
+      type: error?.constructor?.name,
     });
-    res.status(500).json({ message: "Error fetching hotels" });
+    
+    // Send detailed error in development, generic in production
+    const details = process.env.NODE_ENV === "development" ? {
+      message: errorMessage,
+      type: error?.constructor?.name,
+      mongooseError: (error as any)?.$where || (error as any)?.schemaPath,
+    } : undefined;
+    
+    res.status(500).json({ 
+      message: "Error fetching hotels",
+      details: details
+    });
   }
 });
 
