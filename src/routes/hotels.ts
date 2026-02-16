@@ -263,10 +263,42 @@ const constructSearchQuery = (queryParams: any) => {
     constructedQuery.starRating = { $in: starRatings };
   }
 
-  if (queryParams.maxPrice) {
-    constructedQuery.pricePerNight = {
-      $lte: parseInt(queryParams.maxPrice).toString(),
-    };
+  // Fix: Only add maxPrice filter if it's a valid number
+  if (queryParams.maxPrice && queryParams.maxPrice.trim() !== "") {
+    const maxPriceNum = parseInt(queryParams.maxPrice);
+    if (!isNaN(maxPriceNum)) {
+      constructedQuery.pricePerNight = {
+        $lte: maxPriceNum,
+      };
+    }
+  }
+
+  // Add date range filtering for check-in and check-out
+  if (queryParams.checkIn || queryParams.checkOut) {
+    constructedQuery.availableDates = {};
+
+    if (queryParams.checkIn) {
+      try {
+        const checkInDate = new Date(queryParams.checkIn);
+        constructedQuery.availableDates.$gte = checkInDate;
+      } catch (error) {
+        console.log("Invalid checkIn date:", queryParams.checkIn);
+      }
+    }
+
+    if (queryParams.checkOut) {
+      try {
+        const checkOutDate = new Date(queryParams.checkOut);
+        constructedQuery.availableDates.$lte = checkOutDate;
+      } catch (error) {
+        console.log("Invalid checkOut date:", queryParams.checkOut);
+      }
+    }
+
+    // Only add query if we successfully parsed a date
+    if (Object.keys(constructedQuery.availableDates).length === 0) {
+      delete constructedQuery.availableDates;
+    }
   }
 
   return constructedQuery;

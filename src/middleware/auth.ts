@@ -23,6 +23,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   }
 
   if (!token) {
+    console.warn("⚠️  Token verification failed: No token provided", {
+      method: req.method,
+      path: req.path,
+      hasAuthHeader: !!authHeader,
+      hasCookie: !!req.cookies["session_id"],
+    });
     return res.status(401).json({ message: "unauthorized" });
   }
 
@@ -31,7 +37,14 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     req.userId = (decoded as JwtPayload).userId;
     req.userRole = (decoded as JwtPayload).userRole;
     next();
-  } catch (error) {
+  } catch (error: any) {
+    console.warn("⚠️  Token verification failed:", {
+      method: req.method,
+      path: req.path,
+      errorName: error?.name,
+      errorMessage: error?.message,
+      tokenPreview: token?.substring(0, 20) + "...",
+    });
     return res.status(401).json({ message: "unauthorized" });
   }
 };

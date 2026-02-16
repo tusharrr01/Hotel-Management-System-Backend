@@ -220,6 +220,7 @@ const allowedOrigins = [
   "https://hotel-mern-booking.vercel.app",
   "https://hotel-mern-booking.vercel.app/",
 ].filter((origin): origin is string => Boolean(origin));
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -228,6 +229,16 @@ app.use(
 
       // Allow all Netlify and Vercel preview URLs
       if (origin.includes("netlify.app") || origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+
+      // Allow all Render deployment URLs
+      if (origin.includes("onrender.com")) {
+        return callback(null, true);
+      }
+
+      // Allow localhost
+      if (origin.includes("localhost")) {
         return callback(null, true);
       }
 
@@ -251,6 +262,7 @@ app.use(
       "Cookie",
       "X-Requested-With",
     ],
+    exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
   })
 );
 // Explicit preflight handler for all routes
@@ -263,6 +275,16 @@ app.options(
 
       // Allow all Netlify and Vercel preview URLs
       if (origin.includes("netlify.app") || origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+
+      // Allow all Render deployment URLs
+      if (origin.includes("onrender.com")) {
+        return callback(null, true);
+      }
+
+      // Allow localhost
+      if (origin.includes("localhost")) {
         return callback(null, true);
       }
 
@@ -281,6 +303,7 @@ app.options(
       "Cookie",
       "X-Requested-With",
     ],
+    exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
   })
 );
 app.use(cookieParser());
