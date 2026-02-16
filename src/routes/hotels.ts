@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import Hotel from "../models/hotel";
 import Booking from "../models/booking";
 import User from "../models/user";
-import { BookingType, HotelSearchResponse } from "../../../shared/types";
+import { BookingType, HotelSearchResponse } from "../types";
 import { param, validationResult } from "express-validator";
 import crypto from "crypto";
 import verifyToken from "../middleware/auth";

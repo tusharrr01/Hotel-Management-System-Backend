@@ -5,7 +5,7 @@ import Hotel from "../models/hotel";
 import User from "../models/user";
 import verifyToken, { verifyRole } from "../middleware/auth";
 import { body } from "express-validator";
-import { HotelType } from "../../../shared/types";
+import { HotelType } from "../types";
 
 const router = express.Router();
 

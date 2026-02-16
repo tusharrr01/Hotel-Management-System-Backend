@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { UserType } from "../../../shared/types";
+import { UserType } from "../types";
 
 const userSchema = new mongoose.Schema(
   {
