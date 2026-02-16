@@ -1,8 +1,17 @@
 # ========================================================================
 # Hotel Booking Backend - Dockerfile
 # ========================================================================
-# Build context must be repo root (hotel-booking/) to include shared/
-# In Coolify: Base Directory = . (root), Dockerfile = hotel-booking-backend/Dockerfile
+# Build context requirements:
+# - Build from repository ROOT directory (where hotel-booking-backend/ and shared/ folders exist)
+# - Dockerfile path: ./hotel-booking-backend/Dockerfile
+#
+# For Render deployment:
+# - Root Directory: . (empty or dot)
+# - Dockerfile Path: ./hotel-booking-backend/Dockerfile
+# - This allows Docker to find: ../shared directory
+#
+# For local Docker build:
+# - docker build -f hotel-booking-backend/Dockerfile -t hotel-booking-backend .
 # ========================================================================
 
 # Stage 1: Builder (install deps + compile TypeScript)
@@ -31,4 +40,4 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 5000) + '/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-CMD ["node", "dist/hotel-booking-backend/src/index.js"]
+CMD ["node", "dist/src/index.js"]
