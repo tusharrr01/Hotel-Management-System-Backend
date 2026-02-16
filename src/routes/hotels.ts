@@ -32,6 +32,14 @@ router.get("/search", async (req: Request, res: Response) => {
     );
     const skip = (pageNumber - 1) * pageSize;
 
+    console.log("🔍 Hotel Search Query:", {
+      searchQuery: query,
+      sortOptions,
+      pageNumber,
+      pageSize,
+      skip,
+    });
+
     const hotels = await Hotel.find(query)
       .sort(sortOptions)
       .skip(skip)
@@ -48,19 +56,29 @@ router.get("/search", async (req: Request, res: Response) => {
       },
     };
 
+    console.log(`✅ Hotel Search found ${hotels.length} hotels`);
     res.json(response);
   } catch (error) {
-    console.log("error", error);
+    console.error("❌ Hotel Search Error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      query: req.query,
+    });
     res.status(500).json({ message: "Something went wrong" });
   }
 });
 
 router.get("/", async (req: Request, res: Response) => {
   try {
+    console.log("📋 Fetching all hotels...");
     const hotels = await Hotel.find().sort("-lastUpdated");
+    console.log(`✅ Retrieved ${hotels.length} hotels`);
     res.json(hotels);
   } catch (error) {
-    console.log("error", error);
+    console.error("❌ Error fetching hotels:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     res.status(500).json({ message: "Error fetching hotels" });
   }
 });
@@ -273,33 +291,8 @@ const constructSearchQuery = (queryParams: any) => {
     }
   }
 
-  // Add date range filtering for check-in and check-out
-  if (queryParams.checkIn || queryParams.checkOut) {
-    constructedQuery.availableDates = {};
-
-    if (queryParams.checkIn) {
-      try {
-        const checkInDate = new Date(queryParams.checkIn);
-        constructedQuery.availableDates.$gte = checkInDate;
-      } catch (error) {
-        console.log("Invalid checkIn date:", queryParams.checkIn);
-      }
-    }
-
-    if (queryParams.checkOut) {
-      try {
-        const checkOutDate = new Date(queryParams.checkOut);
-        constructedQuery.availableDates.$lte = checkOutDate;
-      } catch (error) {
-        console.log("Invalid checkOut date:", queryParams.checkOut);
-      }
-    }
-
-    // Only add query if we successfully parsed a date
-    if (Object.keys(constructedQuery.availableDates).length === 0) {
-      delete constructedQuery.availableDates;
-    }
-  }
+  // Note: checkIn and checkOut are frontend parameters for booking, not for hotel availability filtering
+  // Date-based availability should be checked against the Booking model, not here
 
   return constructedQuery;
 };
